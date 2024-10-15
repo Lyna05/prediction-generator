@@ -19,3 +19,9 @@ module "predition_generator_lambda" {
       API_TOKEN = "test_value"
     }  
 }
+
+module "prediction_dynamodb_table" {
+    source = "./modules/dynamodb"
+    table_name = "predictions"
+    hash_key = "predictionId"
+}
