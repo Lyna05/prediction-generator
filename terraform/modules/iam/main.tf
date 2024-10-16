@@ -46,7 +46,7 @@ resource "aws_iam_policy" "lambda_dynamodb_policy" {
 				"dynamodb:Query",
 				"dynamodb:UpdateItem"
 			],
-			"Resource": "arn:aws:dynamodb:eu-central-1:273427624300:table/predictions"
+			"Resource": "arn:aws:dynamodb:eu-central-1:525313980360:table/predictions"
 		}
 	]
 })
