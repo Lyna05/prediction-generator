@@ -26,3 +26,12 @@ module "prediction_dynamodb_table" {
     table_name = "predictions"
     hash_key = "predictionId"
 }
+
+
+module "ec2_instance" {
+  source        = "./modules/ec2_instance"
+  ami_id        = "ami-12345678"  # Beispiel AMI-ID
+  instance_type = "t2.micro"
+  instance_name = "MyEC2Instance"
+}
+
