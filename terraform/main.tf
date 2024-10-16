@@ -1,3 +1,5 @@
+## Hier rufst du das EC2-Modul auf und übergibst die notwendigen Variablen.
+
 provider "aws" {
     region = "eu-central-1"
 }
@@ -29,9 +31,14 @@ module "prediction_dynamodb_table" {
 
 
 module "ec2_instance" {
-  source        = "./modules/ec2_instance"
-  ami_id        = "ami-12345678"  # Beispiel AMI-ID
-  instance_type = "t2.micro"
-  instance_name = "MyEC2Instance"
+  source        = "./modules/ec2_instance"  # Pfad zu deinem EC2-Modul
+  ami_id        = "ami-05d09a70429a7c087"            # Beispiel AMI-ID, ersetze sie mit einer gültigen ID
+  instance_type = "t2.micro"                  # Instanztyp
+  instance_name = "MyEC2Instance"             # Name der Instanz
+  subnet_ids    = ["subnet-033755d7549d8b4d7", "subnet-0fa7b891283429a5f"]  # Beispiel-Subnetz-IDs
+  security_group_id = "sg-0cf8d731f7c1f2760"        # Beispiel Sicherheitsgruppen-ID
 }
+
+
+
 

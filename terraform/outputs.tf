@@ -12,3 +12,4 @@ output "prediction_dynamodb_table_name" {
     description = "The name of the predictions DynamoDB table."
     value = module.prediction_dynamodb_table.dynamodb_table_name
 }
+
