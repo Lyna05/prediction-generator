@@ -1,5 +1,3 @@
-## Hier rufst du das EC2-Modul auf und übergibst die notwendigen Variablen.
-
 provider "aws" {
     region = "eu-central-1"
 }
@@ -8,37 +6,60 @@ module "prediction_function_execution_role" {
     source = "./modules/iam"
     role_name = "prediction_generator_function_execution_role"
     policy_name = "AWSLambdaBasicExecutionRole"
+    dynamodb_table_arn = module.prediction_table.dynamodb_table_arn
 }
 
-module "predition_generator_lambda" {
-    source = "./modules/lambda"
-    function_name = "prediction_generator_function"
-    runtime = "nodejs20.x"
-    handler = "index.handler"
-    lambda_role_arn = module.prediction_function_execution_role.lambda_execution_role_arn
-    lambda_zip_path = "${path.module}/prediction-generator-lambda.zip"
-    dynamodb_table_name = module.prediction_dynamodb_table.dynamodb_table_name
-    lambda_environment_vars = {
-      API_TOKEN = "test_value"
-    }  
+module "prediction_table" {
+  source = "./modules/dynamodb"
+  table_name = "predictions"
+  hash_key = "predictionId"
 }
 
-module "prediction_dynamodb_table" {
-    source = "./modules/dynamodb"
-    table_name = "predictions"
-    hash_key = "predictionId"
+module "post_prediction_lambda" {
+  source              = "./modules/lambda"
+  function_name       = "post-prediction-lambda"
+  runtime             = "nodejs20.x"
+  handler             = "prediction-functions/post.handler"
+  lambda_role_arn     = module.prediction_function_execution_role.lambda_execution_role_arn
+  lambda_zip_path     = "${path.module}/post-prediction-lambda.zip"
+  dynamodb_table_name = module.prediction_table.dynamodb_table_name
+  lambda_environment_vars    = {
+    API_KEY = "test_value"
+  }
 }
 
-
-module "ec2_instance" {
-  source        = "./modules/ec2_instance"  # Pfad zu deinem EC2-Modul
-  ami_id        = "ami-05d09a70429a7c087"            # Beispiel AMI-ID, ersetze sie mit einer gültigen ID
-  instance_type = "t2.micro"                  # Instanztyp
-  instance_name = "MyEC2Instance"             # Name der Instanz
-  subnet_ids    = ["subnet-033755d7549d8b4d7", "subnet-0fa7b891283429a5f"]  # Beispiel-Subnetz-IDs
-  security_group_id = "sg-0cf8d731f7c1f2760"        # Beispiel Sicherheitsgruppen-ID
+module "get_predictions_lambda" {
+  source              = "./modules/lambda"
+  function_name       = "get-predictions-lambda"
+  runtime             = "nodejs20.x"
+  handler             = "prediction-functions/get.handler"
+  lambda_role_arn     = module.prediction_function_execution_role.lambda_execution_role_arn
+  lambda_zip_path     = "${path.module}/get-predictions-lambda.zip"
+  dynamodb_table_name = module.prediction_table.dynamodb_table_name
+  lambda_environment_vars    = {
+  }
 }
 
+module "delete_prediction_lambda" {
+  source              = "./modules/lambda"
+  function_name       = "delete-prediction-lambda"
+  runtime             = "nodejs20.x"
+  handler             = "prediction-functions/delete.handler"
+  lambda_role_arn     = module.prediction_function_execution_role.lambda_execution_role_arn
+  lambda_zip_path     = "${path.module}/delete-prediction-lambda.zip"
+  dynamodb_table_name = module.prediction_table.dynamodb_table_name
+  lambda_environment_vars    = {
+  }
+}
 
-
-
+module "api_gateway" {
+  source                   = "./modules/api_gateway"
+  api_name                 = "PredictionsAPI"
+  stage_name               = "dev"
+  lambda_post_function_name = module.post_prediction_lambda.lambda_function_name
+  lambda_post_invoke_arn    = module.post_prediction_lambda.lambda_invoke_arn
+  lambda_get_function_name  = module.get_predictions_lambda.lambda_function_name
+  lambda_get_invoke_arn     = module.get_predictions_lambda.lambda_invoke_arn
+  lambda_delete_function_name = module.delete_prediction_lambda.lambda_function_name
+  lambda_delete_invoke_arn  = module.delete_prediction_lambda.lambda_invoke_arn
+}
