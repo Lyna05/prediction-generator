@@ -1,13 +1,21 @@
-resource "aws_dynamodb_table" "dynamodb_table" {
-    name = var.table_name
-    billing_mode = "PROVISIONED"
-    read_capacity = var.read_capacity
-    write_capacity = var.write_capacity
+variable "table_name" {
+    description = "The name of the DynamoDB table."
+    type = string
+}
 
-    hash_key = var.hash_key
+variable "hash_key" {
+    description = "The partition key attribute name for the DynamoDB table."
+    type = string
+}
 
-    attribute {
-      name = var.hash_key
-      type = "S"
-    }
+variable "read_capacity" {
+    description = "Read capacity units for the table"
+    type = number
+    default = 5
+}
+
+variable "write_capacity" {
+    description = "Write capacity units for the table"
+    type = number
+    default = 5
 }

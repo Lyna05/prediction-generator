@@ -1,5 +1,5 @@
 provider "aws" {
-    region = "eu-central-1"
+  region = "eu-central-1"
 }
 
 module "prediction_function_execution_role" {
@@ -9,12 +9,7 @@ module "prediction_function_execution_role" {
     dynamodb_table_arn = module.prediction_table.dynamodb_table_arn
 }
 
-module "prediction_table" {
-  source = "./modules/dynamodb"
-  table_name = "predictions"
-  hash_key = "predictionId"
-}
-
+# Lambda for POST /prediction
 module "post_prediction_lambda" {
   source              = "./modules/lambda"
   function_name       = "post-prediction-lambda"
@@ -28,6 +23,7 @@ module "post_prediction_lambda" {
   }
 }
 
+# Lambda for GET /predictions
 module "get_predictions_lambda" {
   source              = "./modules/lambda"
   function_name       = "get-predictions-lambda"
@@ -40,6 +36,7 @@ module "get_predictions_lambda" {
   }
 }
 
+# Lambda for DELETE /prediction/{id}
 module "delete_prediction_lambda" {
   source              = "./modules/lambda"
   function_name       = "delete-prediction-lambda"
@@ -50,6 +47,12 @@ module "delete_prediction_lambda" {
   dynamodb_table_name = module.prediction_table.dynamodb_table_name
   lambda_environment_vars    = {
   }
+}
+
+module "prediction_table" {
+  source        = "./modules/dynamodb"
+  table_name    = "predictions"
+  hash_key      = "predictionId"
 }
 
 module "api_gateway" {
@@ -63,3 +66,4 @@ module "api_gateway" {
   lambda_delete_function_name = module.delete_prediction_lambda.lambda_function_name
   lambda_delete_invoke_arn  = module.delete_prediction_lambda.lambda_invoke_arn
 }
+
